@@ -1,13 +1,20 @@
+/* hello_signal.c */
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
 
+int complete;
+
 unsigned int run_time;
 
-void sig_alarm(int signum) {
+void handler(int signum)
+{ //signal handler
+  printf("Hello World!\n");
+  complete = 1;
   run_time++;
   alarm(1);
+  //exit(1); //exit after printing
 }
 
 void sigint(int signum) {
@@ -15,10 +22,20 @@ void sigint(int signum) {
   exit(1);
 }
 
-int main() {
+int main(int argc, char * argv[])
+{
   run_time = 0;
-  signal(SIGALRM, sig_alarm);
+  complete = 0;
+  signal(SIGALRM,handler); //register handler to handle SIGALRM
   signal(SIGINT, sigint);
-  alarm(1);
-  while(1);
+  alarm(1); //Schedule a SIGALRM for 1 second
+  while(1)
+  {
+    while(!complete);
+    printf("Turing was right!\n");
+    complete = 0;
+    alarm(1);
+  } //busy wait for signal to be delivered
+  return 0; //never reached
 }
+
